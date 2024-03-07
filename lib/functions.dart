@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 
-
 @pragma('vm:entry-point')
-Future<dynamic> fetchMovieList(String url) async {
+Future<dynamic> fetchMovieList(Map<String, String> movieParam) async {
   print('worker work!');
-      final dynamic json = await Dio().get(url, queryParameters: {
-      'api_key': 'a72aeb65f93911542ff66814d78affd0',
-      'language': 'en-US',
-      'page': 1,
-    });
+  final dynamic json = await Dio().get('https://api.kinopoisk.dev/v1.3/movie',
+      options: Options(headers: {
+        'accept': 'application/json',
+        'X-API-KEY': '49BHQRJ-YJFMW5K-PPSYSZN-S2NRJNC'
+      }),
+      queryParameters: movieParam);
   print('worker data get!!!');
   return json;
 }
-

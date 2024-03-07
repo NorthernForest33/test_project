@@ -3,6 +3,66 @@
 part of 'rep.dart';
 
 // **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+MovieResponse _$MovieResponseFromJson(Map<String, dynamic> json) =>
+    MovieResponse(
+      movies: (json['docs'] as List<dynamic>)
+          .map((e) => Movie.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int,
+      limit: json['limit'] as int,
+      page: json['page'] as int,
+      pages: json['pages'] as int,
+    );
+
+Map<String, dynamic> _$MovieResponseToJson(MovieResponse instance) =>
+    <String, dynamic>{
+      'docs': instance.movies,
+      'total': instance.total,
+      'limit': instance.limit,
+      'page': instance.page,
+      'pages': instance.pages,
+    };
+
+Movie _$MovieFromJson(Map<String, dynamic> json) => Movie(
+      id: json['id'] as int,
+      name: json['name'] as String?,
+      alternativeName: json['alternativeName'] as String?,
+      enName: json['enName'] as String?,
+      type: json['type'] as String,
+      typeNumber: json['typeNumber'] as int?,
+      year: json['year'] as int?,
+      description: json['description'] as String?,
+      shortDescription: json['shortDescription'] as String?,
+      slogan: json['slogan'] as String?,
+      status: json['status'] as String?,
+      movieLength: json['movieLength'] as int?,
+      ageRating: json['ageRating'] as int?,
+      top10: json['top10'] as int?,
+      top250: json['top250'] as int?,
+    );
+
+Map<String, dynamic> _$MovieToJson(Movie instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'alternativeName': instance.alternativeName,
+      'enName': instance.enName,
+      'type': instance.type,
+      'typeNumber': instance.typeNumber,
+      'year': instance.year,
+      'description': instance.description,
+      'shortDescription': instance.shortDescription,
+      'slogan': instance.slogan,
+      'status': instance.status,
+      'movieLength': instance.movieLength,
+      'ageRating': instance.ageRating,
+      'top10': instance.top10,
+      'top250': instance.top250,
+    };
+
+// **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
@@ -22,7 +82,7 @@ final movieRepositoryProvider = AutoDisposeProvider<MovieRepository>.internal(
 
 typedef MovieRepositoryRef = AutoDisposeProviderRef<MovieRepository>;
 String _$asyncMovieNotifierHash() =>
-    r'de35068f3b618e1306a42cb0cd66416bc0a302da';
+    r'32c3d118cf85b27848c9a0d4c51605e0e277ebdf';
 
 /// See also [AsyncMovieNotifier].
 @ProviderFor(AsyncMovieNotifier)

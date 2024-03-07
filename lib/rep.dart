@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:isolate_manager/isolate_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:test_project/functions.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'rep.g.dart';
 
@@ -16,26 +17,26 @@ class AsyncMovieNotifier extends _$AsyncMovieNotifier {
   
   @override
   FutureOr<MovieResponse> build() async {
-    return _init('https://api.themoviedb.org/3/movie/top_rated');
+    return _init(MovieListRequestParametrs.popularMovies);
   }
 
-  FutureOr<MovieResponse> _init(String movieLink) async {
+  FutureOr<MovieResponse> _init(Map<String, String> movieParam) async {
     final movieRep = ref.watch(movieRepositoryProvider);
-    final movieList = await movieRep.getMovies(movieLink);
+    final movieList = await movieRep.getMovies(movieParam);
     return movieList;
   }
 
-  void fetchData(String movieLink) async {
+  void fetchData(Map<String, String> movieParam) async {
     state = const AsyncLoading();
     final movieRep = ref.watch(movieRepositoryProvider);
-    final movieList = await movieRep.getMovies(movieLink);
+    final movieList = await movieRep.getMovies(movieParam);
     state = AsyncData(movieList);
   }
 
-Future<void> fetchDataFromIsolate(String url) async {
+Future<void> fetchDataFromIsolate(Map<String, String> movieParam) async {
   state = const AsyncLoading();
   final isolateManager = IsolateManager.create(fetchMovieList, workerName: 'worker' ,concurrent: 2, isDebug: true);
-  final json = await isolateManager.compute(url);
+  final json = await isolateManager.compute(movieParam);
   final jsonMap = json.data as Map<String, dynamic>;
   final result = MovieResponse.fromJson(jsonMap);
   state = AsyncData(result);
@@ -52,38 +53,65 @@ Future<void> fetchDataFromIsolate(String url) async {
 
 class MovieRepository {
   Dio dio = Dio();
-  static const String _apiKey = 'a72aeb65f93911542ff66814d78affd0';
   Map<String, String> headers = {
-    'Authorization': 'a72aeb65f93911542ff66814d78affd0',
-    'accept': 'application/json'
+    'accept': 'application/json',
+    'X-API-KEY': '49BHQRJ-YJFMW5K-PPSYSZN-S2NRJNC'
   };
 
-  Future<MovieResponse> getMovies(String moviesLink) async {
-    print('try');
-    final dynamic json = await Dio().get(moviesLink, queryParameters: {
-      'api_key': _apiKey,
-      'language': 'en-US',
-      'page': 1,
-    });
-    print('get');
+  Future<MovieResponse> getMovies(
+      Map<String, String> queryParameters) async {
+    print('send');
+    final dynamic json = await Dio().get('https://api.kinopoisk.dev/v1.3/movie',
+        options: Options(headers: headers), queryParameters: queryParameters);
     final jsonMap = json.data as Map<String, dynamic>;
     final result = MovieResponse.fromJson(jsonMap);
-    Timer(const Duration(seconds: 0), () => print('ready'));
+    print('get');
     return result;
   }
+
 }
 
+class MovieListRequestParametrs {
+  static const Map<String, String> popularMovies = {
+    'premiere.world': '15.10.2022-15.10.2023',
+    'sortFields': 'votes.kp',
+    'sortType': '-1',
+    'limit': '20'
+  };
+
+  static const Map<String, String> releasedSoonMovies = {
+    'poster.url': '!null',
+    'status': 'announced',
+    'sortFields': 'votes.await',
+    'sortType': '-1',
+    'limit': '20'
+  };
+
+  static const Map<String, String> mostRatedMovie = {
+    'sortFields': 'rating.kp',
+    'sortType': '-1',
+    'limit': '20'
+  };
+
+  Map<String, String> searchRequstParametrs(String query, String page) =>
+      {'page': page, 'limit': '20', 'name': query};
+}
+
+@JsonSerializable()
 class MovieResponse {
+  @JsonKey(name: 'docs')
   final List<Movie> movies;
-  final int totalResults;
-  final int totalPages;
+  final int total;
+  final int limit;
   final int page;
+  final int pages;
 
   MovieResponse({
     required this.movies,
-    required this.totalPages,
-    required this.totalResults,
+    required this.total,
+    required this.limit,
     required this.page,
+    required this.pages,
   });
 
   factory MovieResponse.fromJson(Map<String, dynamic> json) =>
@@ -91,97 +119,43 @@ class MovieResponse {
   Map<String, dynamic> toJson() => _$MovieResponseToJson(this);
 }
 
+@JsonSerializable()
 class Movie {
-  final String? posterPath;
-  final bool adult;
-  final String overview;
-  final DateTime? releaseDate;
-  final List<int> genreIds;
   final int id;
-  final String originalTitle;
-  final String originalLanguage;
-  final String title;
-  final String? backdropPath;
-  final double popularity;
-  final int voteCount;
-  final bool video;
-  final double voteAverage;
+  final String? name;
+  final String? alternativeName;
+  final String? enName;
+  final String type;
+  final int? typeNumber;
+  final int? year;
+  final String? description;
+  final String? shortDescription;
+  final String? slogan;
+  final String? status;
+  final int? movieLength;
+  final int? ageRating;
+  final int? top10;
+  final int? top250;
 
   Movie({
-    required this.posterPath,
-    required this.adult,
-    required this.overview,
-    required this.releaseDate,
-    required this.genreIds,
     required this.id,
-    required this.originalTitle,
-    required this.originalLanguage,
-    required this.title,
-    required this.backdropPath,
-    required this.popularity,
-    required this.voteCount,
-    required this.video,
-    required this.voteAverage,
+    required this.name,
+    required this.alternativeName,
+    required this.enName,
+    required this.type,
+    required this.typeNumber,
+    required this.year,
+    required this.description,
+    required this.shortDescription,
+    required this.slogan,
+    required this.status,
+    required this.movieLength,
+    required this.ageRating,
+    required this.top10,
+    required this.top250,
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) => _$MovieFromJson(json);
   Map<String, dynamic> toJson() => _$MovieToJson(this);
 }
-
-DateTime? parseMovieDateFromString(String? rawDate) {
-  if (rawDate == null || rawDate.isEmpty) return null;
-  return DateTime.tryParse(rawDate);
-}
-
-MovieResponse _$MovieResponseFromJson(Map<String, dynamic> json) =>
-    MovieResponse(
-      movies: (json['results'] as List<dynamic>)
-          .map((e) => Movie.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      totalPages: json['total_pages'] as int,
-      totalResults: json['total_results'] as int,
-      page: json['page'] as int,
-    );
-
-Map<String, dynamic> _$MovieResponseToJson(MovieResponse instance) =>
-    <String, dynamic>{
-      'results': instance.movies.map((e) => e.toJson()).toList(),
-      'total_results': instance.totalResults,
-      'total_pages': instance.totalPages,
-      'page': instance.page,
-    };
-
-Movie _$MovieFromJson(Map<String, dynamic> json) => Movie(
-      posterPath: json['poster_path'] as String?,
-      adult: json['adult'] as bool,
-      overview: json['overview'] as String,
-      releaseDate: parseMovieDateFromString(json['release_date'] as String?),
-      genreIds:
-          (json['genre_ids'] as List<dynamic>).map((e) => e as int).toList(),
-      id: json['id'] as int,
-      originalTitle: json['original_title'] as String,
-      originalLanguage: json['original_language'] as String,
-      title: json['title'] as String,
-      backdropPath: json['backdrop_path'] as String?,
-      popularity: (json['popularity'] as num).toDouble(),
-      voteCount: json['vote_count'] as int,
-      video: json['video'] as bool,
-      voteAverage: (json['vote_average'] as num).toDouble(),
-    );
-
-Map<String, dynamic> _$MovieToJson(Movie instance) => <String, dynamic>{
-      'poster_path': instance.posterPath,
-      'adult': instance.adult,
-      'overview': instance.overview,
-      'release_date': instance.releaseDate?.toIso8601String(),
-      'genre_ids': instance.genreIds,
-      'id': instance.id,
-      'original_title': instance.originalTitle,
-      'original_language': instance.originalLanguage,
-      'title': instance.title,
-      'backdrop_path': instance.backdropPath,
-      'popularity': instance.popularity,
-      'vote_count': instance.voteCount,
-      'video': instance.video,
-      'vote_average': instance.voteAverage,
-    };
+    

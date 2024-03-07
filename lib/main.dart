@@ -19,14 +19,14 @@ class _MainAppState extends ConsumerState<MainApp> {
   @override
   Widget build(BuildContext context) {
     var movieData = ref.watch(asyncMovieNotifierProvider);
-    const newMovieLink = 'https://api.themoviedb.org/3/movie/popular';
+    const newMovieParam = MovieListRequestParametrs.mostRatedMovie;
     return MaterialApp(
         home: Scaffold(
             body: Column(children: [
       TextButton(
           onPressed: () {
             ref.read(asyncMovieNotifierProvider.notifier)
-                .fetchDataFromIsolate(newMovieLink);
+                .fetchDataFromIsolate(newMovieParam);
           },
           child: Container(height: 100, width: 100, color: Colors.red)),
       Expanded(
@@ -41,11 +41,11 @@ class _MainAppState extends ConsumerState<MainApp> {
                         color: Theme.of(context).primaryColor,
                         child: ListTile(
                           title: Text(
-                            movieList[index].title,
+                            movieList[index].name ?? 'name',
                             style: const TextStyle(color: Colors.white),
                           ),
                           subtitle: Text(
-                            movieList[index].originalTitle,
+                            movieList[index].alternativeName ?? 'alt Name',
                             style: const TextStyle(color: Colors.white),
                           ),
                         ));
